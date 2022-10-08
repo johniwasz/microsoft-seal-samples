@@ -9,7 +9,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitnessTrackerAPI", "Fitnes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitnessTrackerClient", "FitnessTrackerClient\FitnessTrackerClient.csproj", "{ACC7FEF3-C273-485C-863A-F50771EE5054}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitnessTrackerTests", "FitnessTrackerTests\FitnessTrackerTests.csproj", "{892BD857-C46E-4794-BB3C-2BA68880D919}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitnessTrackerTests", "FitnessTrackerTests\FitnessTrackerTests.csproj", "{892BD857-C46E-4794-BB3C-2BA68880D919}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

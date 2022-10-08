@@ -9,6 +9,8 @@ namespace FitnessTracker.Common.Utils
 {
     public class SEALUtils
     {
+        internal const ulong DEFAULTPOLYMODULUSDEGREE = 4096;
+
         public static string CiphertextToBase64String(Ciphertext ciphertext)
         {
             using (var ms = new MemoryStream())
@@ -105,6 +107,11 @@ namespace FitnessTracker.Common.Utils
         }
 
         public static SEALContext GetContext()
+        {         
+            return GetContext(DEFAULTPOLYMODULUSDEGREE);
+        }
+
+        public static SEALContext GetContext(ulong polyModulusDegree)
         {
             /*
             The first parameter we set is the degree of the `polynomial modulus'. This
@@ -119,7 +126,6 @@ namespace FitnessTracker.Common.Utils
             In this example we use a relatively small polynomial modulus. Anything
             smaller than this will enable only very restricted encrypted computations.
             */
-            ulong polyModulusDegree = 4096;
             var encryptionParameters = new EncryptionParameters(SchemeType.BFV)
             {
                 PolyModulusDegree = polyModulusDegree,

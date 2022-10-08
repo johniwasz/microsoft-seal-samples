@@ -1,26 +1,36 @@
 ﻿using FitnessTracker.Common.Models;
 using FitnessTracker.Common.Utils;
+using FitnessTrackerClient.Models;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.Research.SEAL;
 using System;
 using System.Threading.Tasks;
 
 namespace FitnessTrackerClient
 {
-    internal class FitnessCryptoManager : IDisposable
+    internal class FitnessCryptoManager : IDisposable, IFitnessCryptoManager
     {
         private bool _disposed;
         private Encryptor _encryptor;
         private Decryptor _decryptor;
         private SEALContext _context;
         private KeyGenerator _keyGenerator;
+        private IFitnessTrackerApiClient _apiClient;
         private Microsoft.Research.SEAL.PublicKey _publicKey;
 
-        internal async Task Initialize()
-        {
-            Console.WriteLine("SEAL LAB");
-            Console.WriteLine("Setting up encryption...\n");
+        private readonly ILogger<ClientWorker> _logger;
 
-            // Add Initialization code here
+        public FitnessCryptoManager(IFitnessTrackerApiClient apiClient, ILogger<ClientWorker> logger)
+        {
+            _apiClient = apiClient;
+            _logger = logger;
+        }
+
+        public async Task Initialize()
+        {
+            _logger.LogInformation("Initializing encryption");
+                        
             _context = SEALUtils.GetContext();
 
             _keyGenerator = new KeyGenerator(_context);
@@ -29,48 +39,31 @@ namespace FitnessTrackerClient
 
             _publicKey = publicKey;
 
+            _logger.LogInformation("Generating public key");
             PublicKeyModel keyModel = new PublicKeyModel();
             keyModel.PublicKey = SEALUtils.PublicKeyToBase64String(_publicKey);
-            await FitnessTrackerClient.SendPublicKey(keyModel);
+
+            _logger.LogInformation("Sending public key to API");
+            await _apiClient.SendPublicKey(keyModel);
 
             _encryptor = new Encryptor(_context, _publicKey);
 
             _decryptor = new Decryptor(_context, _keyGenerator.SecretKey);
         }
 
-
-        internal async Task SendNewRun()
+        public async Task SendNewRun(RunEntry newRun)
         {
-            // Get distance from user
-            Console.Write("Enter the new running distance (km): ");
-            var newRunningDistance = Convert.ToInt32(Console.ReadLine());
-
-            if (newRunningDistance < 0)
-            {
-                Console.WriteLine("Running distance must be greater than 0.");
-                return;
-            }
 
             // We will convert the Int value to Hexadecimal using the ToString("X") method
-            var plaintext = new Plaintext($"{newRunningDistance.ToString("X")}");
+            var plaintext = new Plaintext($"{newRun.Distance.ToString("X")}");
             var ciphertextDistance = new Ciphertext();
             _encryptor.Encrypt(plaintext, ciphertextDistance);
 
             // Convert value to base64 string
             var base64Distance = SEALUtils.CiphertextToBase64String(ciphertextDistance);
 
-            // Get time from user
-            Console.Write("Enter the new running time (hours): ");
-            var newRunningTime = Convert.ToInt32(Console.ReadLine());
-
-            if (newRunningTime < 0)
-            {
-                Console.WriteLine("Running time must be greater than 0.");
-                return;
-            }
-
             // We will convert the Int value to Hexadecimal using the ToString("X") method
-            var plaintextTime = new Plaintext($"{newRunningTime.ToString("X")}");
+            var plaintextTime = new Plaintext($"{newRun.Time.ToString("X")}");
             var ciphertextTime = new Ciphertext();
             _encryptor.Encrypt(plaintextTime, ciphertextTime);
 
@@ -83,20 +76,23 @@ namespace FitnessTrackerClient
                 Time = base64Time
             };
 
-            LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
+            string logInfo = LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
 
+            _logger.LogInformation(logInfo);
+            
             // Send new run to api
-            await FitnessTrackerClient.AddNewRunningDistance(metricsRequest);
+            await _apiClient.AddNewRunningDistance(metricsRequest);
         }
-       
-        internal async Task<DecryptedMetricsResponse> GetMetrics()
+
+        public async Task<DecryptedMetricsResponse> GetMetrics()
         {
             // Get encrypted metrics
-            var metrics = await FitnessTrackerClient.GetMetrics();
+            var metrics = await _apiClient.GetMetrics();
 
             DecryptedMetricsResponse response = new DecryptedMetricsResponse();
 
-            LogUtils.SummaryStatisticInfo("CLIENT", "GetMetrics", metrics);
+            string logInfo = LogUtils.SummaryStatisticInfo("CLIENT", "GetMetrics", metrics);
+            _logger.LogInformation(logInfo);
 
             // Decrypt the data
             var ciphertextTotalRuns = SEALUtils.BuildCiphertextFromBase64String(metrics.TotalRuns, _context);
@@ -115,7 +111,7 @@ namespace FitnessTrackerClient
             response.TotalHours = plaintextTotalHours.ToString();
 
 
-            return response;          
+            return response;
         }
 
         public void Dispose() => Dispose(true);
@@ -129,11 +125,11 @@ namespace FitnessTrackerClient
 
             if (disposing)
             {
-                _encryptor.Dispose();
-                _decryptor.Dispose();
-                _keyGenerator.Dispose();
-                _publicKey.Dispose();
-                _context.Dispose();
+                _encryptor?.Dispose();
+                _decryptor?.Dispose();
+                _keyGenerator?.Dispose();
+                _publicKey?.Dispose();
+                _context?.Dispose();
             }
 
             _disposed = true;
