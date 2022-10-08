@@ -1,26 +1,22 @@
 ﻿using FitnessTracker.Common.Models;
-using Newtonsoft.Json;
-using System;
-using System.IO;
 using System.Net.Http;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Research.SEAL;
-
 
 namespace FitnessTrackerClient
 {
-    public static class FitnessTrackerClient
+    internal static class FitnessTrackerClient
     {
         private static HttpClient _client = new HttpClient();
 
         private static readonly string BaseUri = "http://localhost:58849/api";
 
 
-        public static async Task AddNewRunningDistance(RunItem metricsRequest)
+        internal static async Task AddNewRunningDistance(RunItem metricsRequest)
         {
 
-            var metricsRequestAsJsonStr = JsonConvert.SerializeObject(metricsRequest);
+            var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
       
             using (var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUri}/metrics"))
             using (var content = new StringContent(metricsRequestAsJsonStr, Encoding.UTF8, "application/json"))
@@ -31,18 +27,25 @@ namespace FitnessTrackerClient
             }
         }
 
-        public static async Task<SummaryItem> GetMetrics()
+        internal static async Task<SummaryItem> GetMetrics()
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUri}/metrics"))
             {
                 var response = await _client.SendAsync(request);
-                return JsonConvert.DeserializeObject<SummaryItem>(await response.Content.ReadAsStringAsync());
+                string contentText = await response.Content.ReadAsStringAsync();
+
+                JsonSerializerOptions serOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                return JsonSerializer.Deserialize<SummaryItem>(contentText, serOptions);
             }
         }
 
-        public static async Task SendPublicKey(PublicKeyModel publicKey)
+        internal static async Task SendPublicKey(PublicKeyModel publicKey)
         {
-            var publicKeyRequestAsJsonStr = JsonConvert.SerializeObject(publicKey);
+            var publicKeyRequestAsJsonStr = JsonSerializer.Serialize(publicKey);
 
             using (var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUri}/metrics/keys"))
             using (var content = new StringContent(publicKeyRequestAsJsonStr, Encoding.UTF8, "application/json"))

@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Runtime.Intrinsics.X86;
 using System.Text;
 using Microsoft.Research.SEAL;
 
@@ -105,12 +106,64 @@ namespace FitnessTracker.Common.Utils
 
         public static SEALContext GetContext()
         {
-            ulong modulusDegree = 4096;
+            /*
+            The first parameter we set is the degree of the `polynomial modulus'. This
+            must be a positive power of 2, representing the degree of a power-of-two
+            cyclotomic polynomial; it is not necessary to understand what this means.
+
+            Larger PolyModulusDegree makes ciphertext sizes larger and all operations
+            slower, but enables more complicated encrypted computations. Recommended
+            values are 1024, 2048, 4096, 8192, 16384, 32768, but it is also possible
+            to go beyond this range.
+
+            In this example we use a relatively small polynomial modulus. Anything
+            smaller than this will enable only very restricted encrypted computations.
+            */
+            ulong polyModulusDegree = 4096;
             var encryptionParameters = new EncryptionParameters(SchemeType.BFV)
             {
-//                PolyModulusDegree = 32768,
-                PolyModulusDegree = modulusDegree,
-                CoeffModulus = CoeffModulus.BFVDefault(polyModulusDegree: modulusDegree)
+                PolyModulusDegree = polyModulusDegree,
+
+                /*
+           Next we set the [ciphertext] `coefficient modulus' (CoeffModulus). This
+           parameter is a large integer, which is a product of distinct prime numbers,
+           numbers, each represented by an instance of the Modulus class. The
+           bit-length of CoeffModulus means the sum of the bit-lengths of its prime
+           factors.
+
+           A larger CoeffModulus implies a larger noise budget, hence more encrypted
+           computation capabilities. However, an upper bound for the total bit-length
+           of the CoeffModulus is determined by the PolyModulusDegree, as follows:
+
+               +----------------------------------------------------+
+               | PolyModulusDegree   | max CoeffModulus bit-length  |
+               +---------------------+------------------------------+
+               | 1024                | 27                           |
+               | 2048                | 54                           |
+               | 4096                | 109                          |
+               | 8192                | 218                          |
+               | 16384               | 438                          |
+               | 32768               | 881                          |
+               +---------------------+------------------------------+
+
+           These numbers can also be found in native/src/seal/util/hestdparms.h encoded
+           in the function SEAL_HE_STD_PARMS_128_TC, and can also be obtained from the
+           function
+
+               CoeffModulus.MaxBitCount(polyModulusDegree).
+
+           For example, if PolyModulusDegree is 4096, the coeff_modulus could consist
+           of three 36-bit primes (108 bits).
+
+           Microsoft SEAL comes with helper functions for selecting the CoeffModulus.
+           For new users the easiest way is to simply use
+
+               CoeffModulus.BFVDefault(polyModulusDegree),
+
+           which returns IEnumerable<Modulus> consisting of a generally good choice
+           for the given PolyModulusDegree.
+           */
+                CoeffModulus = CoeffModulus.BFVDefault(polyModulusDegree)
             };
 
             encryptionParameters.SetPlainModulus(0x133Ful);

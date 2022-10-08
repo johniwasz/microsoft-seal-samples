@@ -1,14 +1,19 @@
 ﻿using FitnessTrackerAPI.Controllers;
+using FitnessTrackerAPI.Services;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Newtonsoft.Json.Serialization;
+using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton<MetricsController, MetricsController>();
+builder.Services.AddSingleton<ICryptoServerManager, CryptoServerManager>();
 
-builder.Services.AddMvc().AddControllersAsServices();
+builder.Services
+    .AddMvc()
+    .AddJsonOptions(options => options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase);
 
 var app = builder.Build();
 

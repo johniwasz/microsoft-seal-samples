@@ -1,13 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.28803.452
+# Visual Studio Version 17
+VisualStudioVersion = 17.3.32811.315
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitnessTracker.Common", "FitnessTracker.Common\FitnessTracker.Common.csproj", "{481E39AE-5D81-4758-B0E2-E2089BD4ED1A}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitnessTrackerAPI", "FitnessTrackerAPI\FitnessTrackerAPI.csproj", "{A266E27A-DD7C-4887-9152-12DAB0371ACA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FitnessTrackerClient", "FitnessTrackerClient\FitnessTrackerClient.csproj", "{ACC7FEF3-C273-485C-863A-F50771EE5054}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FitnessTrackerTests", "FitnessTrackerTests\FitnessTrackerTests.csproj", "{892BD857-C46E-4794-BB3C-2BA68880D919}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,6 +43,14 @@ Global
 		{ACC7FEF3-C273-485C-863A-F50771EE5054}.Release|Any CPU.Build.0 = Release|Any CPU
 		{ACC7FEF3-C273-485C-863A-F50771EE5054}.Release|x64.ActiveCfg = Release|Any CPU
 		{ACC7FEF3-C273-485C-863A-F50771EE5054}.Release|x64.Build.0 = Release|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Debug|x64.Build.0 = Debug|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Release|Any CPU.Build.0 = Release|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Release|x64.ActiveCfg = Release|Any CPU
+		{892BD857-C46E-4794-BB3C-2BA68880D919}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
