@@ -1,15 +1,15 @@
 ﻿using FitnessTracker.Common.Models;
 using FitnessTracker.Common.Utils;
 using FitnessTrackerClient.Models;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Research.SEAL;
 using System;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerClient
+namespace FitnessTrackerClient.Services
 {
-    internal class FitnessCryptoManager : IDisposable, IFitnessCryptoManager
+    public class FitnessCryptoManager : IDisposable, IFitnessCryptoManager
     {
         private bool _disposed;
         private Encryptor _encryptor;
@@ -17,25 +17,26 @@ namespace FitnessTrackerClient
         private SEALContext _context;
         private KeyGenerator _keyGenerator;
         private IFitnessTrackerApiClient _apiClient;
-        private Microsoft.Research.SEAL.PublicKey _publicKey;
+        private PublicKey _publicKey;
+        private IOptions<FitnessCryptoConfig> _config;
+        private readonly ILogger<FitnessCryptoManager> _logger;
 
-        private readonly ILogger<ClientWorker> _logger;
-
-        public FitnessCryptoManager(IFitnessTrackerApiClient apiClient, ILogger<ClientWorker> logger)
+        public FitnessCryptoManager(IOptions<FitnessCryptoConfig> config, IFitnessTrackerApiClient apiClient, ILogger<FitnessCryptoManager> logger)
         {
+            _config = config;
             _apiClient = apiClient;
             _logger = logger;
         }
 
-        public async Task Initialize()
+        public async Task InitializeAsync()
         {
             _logger.LogInformation("Initializing encryption");
-                        
-            _context = SEALUtils.GetContext();
+
+            _context = SEALUtils.GetContext(_config.Value.PolyModulusDegree);
 
             _keyGenerator = new KeyGenerator(_context);
 
-            _keyGenerator.CreatePublicKey(out Microsoft.Research.SEAL.PublicKey publicKey);
+            _keyGenerator.CreatePublicKey(out PublicKey publicKey);
 
             _publicKey = publicKey;
 
@@ -51,7 +52,7 @@ namespace FitnessTrackerClient
             _decryptor = new Decryptor(_context, _keyGenerator.SecretKey);
         }
 
-        public async Task SendNewRun(RunEntry newRun)
+        public async Task SendNewRunAsync(RunEntry newRun)
         {
 
             // We will convert the Int value to Hexadecimal using the ToString("X") method
@@ -79,12 +80,12 @@ namespace FitnessTrackerClient
             string logInfo = LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
 
             _logger.LogInformation(logInfo);
-            
+
             // Send new run to api
             await _apiClient.AddNewRunningDistance(metricsRequest);
         }
 
-        public async Task<DecryptedMetricsResponse> GetMetrics()
+        public async Task<DecryptedMetricsResponse> GetMetricsAsync()
         {
             // Get encrypted metrics
             var metrics = await _apiClient.GetMetrics();
@@ -113,6 +114,15 @@ namespace FitnessTrackerClient
 
             return response;
         }
+        
+        internal PublicKey PublicKey
+        {
+            get
+            {
+                return _publicKey;
+            }
+        }
+
 
         public void Dispose() => Dispose(true);
 

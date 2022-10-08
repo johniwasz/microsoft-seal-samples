@@ -1,9 +1,9 @@
 ﻿namespace FitnessTrackerClient.Models
 {
-    internal class DecryptedMetricsResponse
+    public class DecryptedMetricsResponse
     {
-        internal string TotalRuns { get; set; }
-        internal string TotalDistance { get; set; }
-        internal string TotalHours { get; set; }
+        public string TotalRuns { get; set; }
+        public string TotalDistance { get; set; }
+        public string TotalHours { get; set; }
     }
 }

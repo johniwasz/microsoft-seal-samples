@@ -1,5 +1,7 @@
 ﻿using FitnessTracker.Common.Models;
 using FitnessTracker.Common.Utils;
+using FitnessTrackerClient.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.Research.SEAL;
 using System;
 using System.Collections.Generic;
@@ -15,12 +17,14 @@ namespace FitnessTrackerAPI.Services
         private Evaluator _evaluator;
         private Encryptor _encryptor;
         private List<ClientData> _metrics = new List<ClientData>();
+        private IOptions<FitnessCryptoConfig> _config;
         private Microsoft.Research.SEAL.PublicKey _publicKey;
 
-        public CryptoServerManager()
+        public CryptoServerManager(IOptions<FitnessCryptoConfig> config)
         {
             // Initialize context
-            _sealContext = SEALUtils.GetContext();
+            _config = config;
+            _sealContext = SEALUtils.GetContext(_config.Value.PolyModulusDegree);
             _evaluator = new Evaluator(_sealContext);
         }
 

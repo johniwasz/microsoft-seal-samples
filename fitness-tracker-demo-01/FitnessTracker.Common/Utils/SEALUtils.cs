@@ -9,7 +9,7 @@ namespace FitnessTracker.Common.Utils
 {
     public class SEALUtils
     {
-        internal const ulong DEFAULTPOLYMODULUSDEGREE = 4096;
+        public const ulong DEFAULTPOLYMODULUSDEGREE = 4096;
 
         public static string CiphertextToBase64String(Ciphertext ciphertext)
         {

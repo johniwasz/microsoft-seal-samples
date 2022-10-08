@@ -2,13 +2,10 @@
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerClient
+namespace FitnessTrackerClient.Services
 {
     internal class ClientWorker : BackgroundService
     {
@@ -16,7 +13,6 @@ namespace FitnessTrackerClient
         private readonly IFitnessCryptoManager _cryptoManager;
         private readonly ILogger<ClientWorker> _logger;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
-        private Task _executeTask;
 
         public ClientWorker(
             IFitnessCryptoManager cryptoManager,
@@ -37,7 +33,7 @@ namespace FitnessTrackerClient
             try
             {
                 // Configure encryption/decruption
-                await _cryptoManager.Initialize();
+                await _cryptoManager.InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -68,19 +64,17 @@ namespace FitnessTrackerClient
                     switch (option)
                     {
                         case 0:
-                            Console.WriteLine("Exiting");
                             isExiting = true;
                             break;
                         case 1:
                             RunEntry newRun = GetNewRun();
                             if (newRun != null)
                             {
-                                await _cryptoManager.SendNewRun(newRun);
+                                await _cryptoManager.SendNewRunAsync(newRun);
                             }
                             break;
                         case 2:
-                            Console.WriteLine("GetMetrics");
-                            DecryptedMetricsResponse decryptedResponse = await _cryptoManager.GetMetrics();
+                            DecryptedMetricsResponse decryptedResponse = await _cryptoManager.GetMetricsAsync();
                             PrintMetrics(decryptedResponse);
                             break;
                     }
@@ -119,7 +113,7 @@ namespace FitnessTrackerClient
                 Console.WriteLine("Running time must be greater than 0.");
                 return null;
             }
-            
+
             runEntry.Time = newRunningTime;
 
             return runEntry;

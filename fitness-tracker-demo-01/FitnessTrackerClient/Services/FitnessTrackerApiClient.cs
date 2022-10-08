@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerClient
+namespace FitnessTrackerClient.Services
 {
     public class FitnessTrackerApiClient : IFitnessTrackerApiClient
     {
@@ -20,7 +20,7 @@ namespace FitnessTrackerClient
 
             var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
 
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"metrics"))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metrics"))
             using (var content = new StringContent(metricsRequestAsJsonStr, Encoding.UTF8, "application/json"))
             {
                 request.Content = content;
@@ -31,7 +31,7 @@ namespace FitnessTrackerClient
 
         public async Task<SummaryItem> GetMetrics()
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, $"metrics"))
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/metrics"))
             {
                 var response = await _client.SendAsync(request);
                 string contentText = await response.Content.ReadAsStringAsync();
@@ -49,7 +49,7 @@ namespace FitnessTrackerClient
         {
             var publicKeyRequestAsJsonStr = JsonSerializer.Serialize(publicKey);
 
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"metrics/keys"))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metrics/keys"))
             using (var content = new StringContent(publicKeyRequestAsJsonStr, Encoding.UTF8, "application/json"))
             {
                 request.Content = content;

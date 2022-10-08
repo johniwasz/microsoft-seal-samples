@@ -1,7 +1,7 @@
 ﻿using FitnessTracker.Common.Models;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerClient
+namespace FitnessTrackerClient.Services
 {
     public interface IFitnessTrackerApiClient
     {
