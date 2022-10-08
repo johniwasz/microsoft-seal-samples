@@ -10,6 +10,11 @@ Each demo project builds on the work in the prior project.
 The original [sample code](https://zarmada.blob.core.windows.net/ai-school-module-updates/ai-school-lab-seal.zip) uses .NET Core 2.2 and directly references the Microsoft SEAL C++ dll. The following updates are applied to this demo project:
 
 - Upgraded to .NET Core 6.0
+- Replaced Newtonsoft.Json with System.Text.Json
+- Applied IDisposable pattern to clean up unmanaged resources (i.e. SEALContext, etc.)
+- Moved api cryptography logic to a dedicated singleton service instead of using a singleton controller
 - Directly referencing the [Microsoft.Research.SEALNet 4.0.0](https://www.nuget.org/packages/Microsoft.Research.SEALNet/) Nuget package. This is a C# wrapper around the C++ dll generated from the [Microsoft SEAL repo](https://github.com/microsoft/SEAL).
-- Client creates secret and public key. Public key is passed to the server.
+- Client creates secret and public key. Public key is passed to the server. The original sample created the public key and secret on the API. The client obtained the keys by calling a `metrics\keys` route. This defeats the intent of homomorphic encryption. The fitness client keeps personal health data that should be available as `plaintext` to the API. This update makes the client responsible for generating the public key and secret.
+
+
 
