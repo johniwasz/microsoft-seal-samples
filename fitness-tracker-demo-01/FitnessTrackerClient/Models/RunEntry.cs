@@ -9,8 +9,21 @@ namespace FitnessTrackerClient.Models
     public class RunEntry
     {
 
-        public int Time { get; set; }
+        public RunEntry()
+        {
+
+        }
+
+        public RunEntry(int distance, int time)
+        {
+            Distance = distance;
+            Time = time;
+        }
 
         public int Distance { get; set; }
+
+        public int Time { get; set; }
+
+        
     }
 }

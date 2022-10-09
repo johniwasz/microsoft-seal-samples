@@ -44,7 +44,7 @@ namespace FitnessTracker.Common.Utils
 
         public static Ciphertext CreateCiphertextFromInt(double value, Encryptor encryptor)
         {
-            var plaintext = new Plaintext($"{value}");
+            var plaintext = new Plaintext(value.ToString());
             var ciphertext = new Ciphertext();
             encryptor.Encrypt(plaintext, ciphertext);
             return ciphertext;
@@ -104,6 +104,11 @@ namespace FitnessTracker.Common.Utils
         {
             var base64EncodedBytes = System.Convert.FromBase64String(base64EncodedData);
             return System.Text.Encoding.UTF8.GetString(base64EncodedBytes);
+        }
+
+        public static long GetByteLength(string base64EncodedData)
+        {
+            return System.Text.ASCIIEncoding.UTF8.GetByteCount(base64EncodedData);
         }
 
         public static SEALContext GetContext()

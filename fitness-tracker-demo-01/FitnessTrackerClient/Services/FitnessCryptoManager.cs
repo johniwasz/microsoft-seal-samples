@@ -55,26 +55,10 @@ namespace FitnessTrackerClient.Services
         public async Task SendNewRunAsync(RunEntry newRun)
         {
 
-            // We will convert the Int value to Hexadecimal using the ToString("X") method
-            var plaintext = new Plaintext($"{newRun.Distance.ToString("X")}");
-            var ciphertextDistance = new Ciphertext();
-            _encryptor.Encrypt(plaintext, ciphertextDistance);
-
-            // Convert value to base64 string
-            var base64Distance = SEALUtils.CiphertextToBase64String(ciphertextDistance);
-
-            // We will convert the Int value to Hexadecimal using the ToString("X") method
-            var plaintextTime = new Plaintext($"{newRun.Time.ToString("X")}");
-            var ciphertextTime = new Ciphertext();
-            _encryptor.Encrypt(plaintextTime, ciphertextTime);
-
-            // Convert value to base64 string
-            var base64Time = SEALUtils.CiphertextToBase64String(ciphertextTime);
-
             var metricsRequest = new RunItem
             {
-                Distance = base64Distance,
-                Time = base64Time
+                Distance = EncryptBase64(newRun.Distance),
+                Time = EncryptBase64(newRun.Time)
             };
 
             string logInfo = LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
@@ -83,6 +67,16 @@ namespace FitnessTrackerClient.Services
 
             // Send new run to api
             await _apiClient.AddNewRunningDistance(metricsRequest);
+        }
+
+        private string EncryptBase64(int value)
+        {
+            var plaintext = new Plaintext(value.ToString("X"));
+            var ciphertext = new Ciphertext();
+            _encryptor.Encrypt(plaintext, ciphertext);
+
+            // Convert value to base64 string
+            return SEALUtils.CiphertextToBase64String(ciphertext);
         }
 
         public async Task<DecryptedMetricsResponse> GetMetricsAsync()
@@ -96,23 +90,19 @@ namespace FitnessTrackerClient.Services
             _logger.LogInformation(logInfo);
 
             // Decrypt the data
-            var ciphertextTotalRuns = SEALUtils.BuildCiphertextFromBase64String(metrics.TotalRuns, _context);
-            var plaintextTotalRuns = new Plaintext();
-            _decryptor.Decrypt(ciphertextTotalRuns, plaintextTotalRuns);
-            response.TotalRuns = plaintextTotalRuns.ToString();
-
-            var ciphertextTotalDistance = SEALUtils.BuildCiphertextFromBase64String(metrics.TotalDistance, _context);
-            var plaintextTotalDistance = new Plaintext();
-            _decryptor.Decrypt(ciphertextTotalDistance, plaintextTotalDistance);
-            response.TotalDistance = plaintextTotalDistance.ToString();
-
-            var ciphertextTotalHours = SEALUtils.BuildCiphertextFromBase64String(metrics.TotalHours, _context);
-            var plaintextTotalHours = new Plaintext();
-            _decryptor.Decrypt(ciphertextTotalHours, plaintextTotalHours);
-            response.TotalHours = plaintextTotalHours.ToString();
-
-
+            response.TotalRuns = DecryptBase64(metrics.TotalRuns);
+            response.TotalDistance = DecryptBase64(metrics.TotalDistance);
+            response.TotalHours = DecryptBase64(metrics.TotalHours);
             return response;
+        }
+
+
+        private string DecryptBase64(string encryptedText)
+        {
+            var cypherText = SEALUtils.BuildCiphertextFromBase64String(encryptedText, _context);
+            var decryptedText = new Plaintext();
+            _decryptor.Decrypt(cypherText, decryptedText);
+            return decryptedText.ToString();
         }
         
         internal PublicKey PublicKey
