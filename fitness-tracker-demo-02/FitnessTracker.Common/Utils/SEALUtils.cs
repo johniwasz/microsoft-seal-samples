@@ -233,6 +233,7 @@ namespace FitnessTracker.Common.Utils
                which returns IEnumerable<Modulus> consisting of a generally good choice
                for the given PolyModulusDegree.
                */
+
                 CoeffModulus = CoeffModulus.BFVDefault(polyModulusDegree),
 
                 /*

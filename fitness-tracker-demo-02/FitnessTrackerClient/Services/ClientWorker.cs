@@ -140,7 +140,7 @@ namespace FitnessTrackerClient.Services
             runEntry.Distance = newRunningDistance;
 
             // Get time from user
-            Console.Write("Enter the new running time (HH:MM:SS.mmm): ");
+            Console.Write("Enter the new running time (hours): ");
             var newRunningTime = Convert.ToInt32(Console.ReadLine());
 
             if (newRunningTime < 0)
@@ -172,7 +172,7 @@ namespace FitnessTrackerClient.Services
             runEntry.Distance = newRunningDistance;
 
             // Get time from user
-            Console.Write("Enter the new running time (hours): ");
+            Console.Write("Enter the new running time (HH:MM:SS.mmm): ");
 
             string timeEntry = Console.ReadLine();
 
