@@ -1,6 +1,7 @@
 ﻿using FitnessTracker.Common.Models;
 using FitnessTracker.Common.Utils;
 using Microsoft.Research.SEAL;
+using Polly;
 using Xunit.Abstractions;
 
 namespace FitnessTrackerTests
@@ -22,16 +23,16 @@ namespace FitnessTrackerTests
         [InlineData(32768, 20)]
         public void ValidateRunCalculation(ulong polyModulusDegree, ulong numEntries)
         {
-            List<EncryptedRunInfo> runList = new List<EncryptedRunInfo>();
+            List<EncryptedRunInfoBGV> runList = new List<EncryptedRunInfoBGV>();
 
-            using var context = SEALUtils.GetContext(polyModulusDegree); 
+            using var context = SEALUtils.GetContext(polyModulusDegree, SchemeType.BGV);
 
             using var keyGenerator = new KeyGenerator(context);
 
-            keyGenerator.CreatePublicKey(out PublicKey publicKey);                        
-            
+            keyGenerator.CreatePublicKey(out PublicKey publicKey);
+
             using var encryptor = new Encryptor(context, publicKey);
-            
+
             using var decryptor = new Decryptor(context, keyGenerator.SecretKey);
 
             ulong expectedDistance = 0;
@@ -41,12 +42,12 @@ namespace FitnessTrackerTests
             Random rnd = new Random();
             for (ulong i = 0; i < numEntries; i++)
             {
-                distance = (ulong) rnd.Next(1, 10);
-                time = (ulong) rnd.Next(1, 10);
+                distance = (ulong)rnd.Next(1, 10);
+                time = (ulong)rnd.Next(1, 10);
 
                 _output.WriteLine($"Distance {distance}, Time: {time}");
 
-                EncryptedRunInfo encryptedRunInfo = new EncryptedRunInfo
+                EncryptedRunInfoBGV encryptedRunInfo = new EncryptedRunInfoBGV
                 {
                     Distance = GetCipherText(encryptor, distance),
                     Hours = GetCipherText(encryptor, time)
@@ -86,7 +87,7 @@ namespace FitnessTrackerTests
         }
 
         private Ciphertext GetCipherText(Encryptor encryptor, ulong value)
-        {            
+        {
             var plaintext = value.ToPlainText();
             var ciphertext = new Ciphertext();
             encryptor.Encrypt(plaintext, ciphertext);
@@ -117,7 +118,51 @@ namespace FitnessTrackerTests
             return val;
         }
 
+        [Fact]
+        public void ValidateBase64Encryption()
+        {
+
+            using var context = SEALUtils.GetContext(8196, SchemeType.CKKS);
+
+            using var keyGenerator = new KeyGenerator(context);
+
+            keyGenerator.CreatePublicKey(out PublicKey publicKey);
+
+            using var encryptor = new Encryptor(context, publicKey);
+
+            using var decryptor = new Decryptor(context, keyGenerator.SecretKey);
+
+            using var encoder = new CKKSEncoder(context);
+
+            List<double> origValue = new List<double> { 50d };
+
+            double scale = Math.Pow(2.0, 40);
+
+            Plaintext encodedValue = new Plaintext();
+                
+            encoder.Encode(origValue, scale, encodedValue);
+
+            Ciphertext encrypted = new Ciphertext();
+
+            encryptor.Encrypt(encodedValue, encrypted);
 
 
+            string cipherText = SEALUtils.CiphertextToBase64String(encrypted);
+
+            Ciphertext decodedCipherText = SEALUtils.BuildCiphertextFromBase64String(cipherText, context);
+
+            Plaintext decryptedPlain = new Plaintext();
+
+            decryptor.Decrypt(encrypted, decryptedPlain);
+
+
+            List<double> result = new List<double>();
+
+            encoder.Decode(decryptedPlain, result);
+
+            _output.WriteLine(result[0].ToString());
+
+
+        }
     }
 }

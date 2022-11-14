@@ -45,7 +45,7 @@ namespace FitnessTracker.Common.Utils
                 logText.AppendLine($"[{from}] RunItem received object values as base64");
                 logText.AppendLine($"[{from}] \t \t TotalRuns: {SEALUtils.Base64Decode(summaryItem.TotalRuns)}");
                 logText.AppendLine($"[{from}] \t \t TotalDistance: {SEALUtils.Base64Decode(summaryItem.TotalDistance)}");
-                logText.AppendLine($"[{from}] \t \t TotalHours: {SEALUtils.Base64Decode(summaryItem.TotalHours)}");
+                logText.AppendLine($"[{from}] \t \t TotalHours: {SEALUtils.Base64Decode(summaryItem.TotalTime)}");
             }
             else
             {
@@ -62,9 +62,9 @@ namespace FitnessTracker.Common.Utils
                 logText.AppendLine($"[{from}] \t \t TotalDistance (Bytes): {SEALUtils.GetByteLength(summaryItem.TotalDistance)}");
 
                 logText.AppendLine($"[{from}] \t \t TotalHours: " +
-                    $"{(summaryItem.TotalHours.Length > 25 ? summaryItem.TotalHours.Substring(0, 25) : summaryItem.TotalHours)}" +
-                    $"{(summaryItem.TotalHours.Length > 25 ? "..." : "")}");
-                logText.AppendLine($"[{from}] \t \t TotalHours (Bytes): {SEALUtils.GetByteLength(summaryItem.TotalHours)}");
+                    $"{(summaryItem.TotalTime.Length > 25 ? summaryItem.TotalTime.Substring(0, 25) : summaryItem.TotalTime)}" +
+                    $"{(summaryItem.TotalTime.Length > 25 ? "..." : "")}");
+                logText.AppendLine($"[{from}] \t \t TotalHours (Bytes): {SEALUtils.GetByteLength(summaryItem.TotalTime)}");
             }
 
             return logText.ToString();

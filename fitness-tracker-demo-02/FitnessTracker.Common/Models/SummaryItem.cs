@@ -9,7 +9,8 @@ namespace FitnessTracker.Common.Models
 
         public string TotalDistance { get; set; }
 
-        public string TotalHours { get; set; }
+        public string TotalTime { get; set; }
 
+        public string AverageSpeed { get; set; }
     }
 }

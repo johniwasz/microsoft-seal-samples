@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace FitnessTrackerClient.Models
 {
-    public class RunEntry
+    public class RunEntry<T>
     {
 
         public RunEntry()
@@ -14,15 +14,15 @@ namespace FitnessTrackerClient.Models
 
         }
 
-        public RunEntry(int distance, int time)
+        public RunEntry(T distance, T time)
         {
             Distance = distance;
             Time = time;
         }
 
-        public int Distance { get; set; }
+        public T Distance { get; set; }
 
-        public int Time { get; set; }
+        public T Time { get; set; }
 
         
     }

@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection.Metadata.Ecma335;
+using System.Runtime.CompilerServices;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using Microsoft.Research.SEAL;
@@ -44,7 +45,7 @@ namespace FitnessTracker.Common.Utils
 
         public static Ciphertext CreateCiphertext(int value, Encryptor encryptor)
         {
-            var plaintext = value.ToPlainText();
+            using Plaintext plaintext = value.ToPlainText();
             var ciphertext = new Ciphertext();
             encryptor.Encrypt(plaintext, ciphertext);
             return ciphertext;
@@ -52,7 +53,7 @@ namespace FitnessTracker.Common.Utils
 
         public static Ciphertext CreateCiphertext(double value, Encryptor encryptor)
         {
-            var plaintext = value.ToPlainText();
+            using Plaintext plaintext = value.ToPlainText();
             var ciphertext = new Ciphertext();
             encryptor.Encrypt(plaintext, ciphertext);
             return ciphertext;
@@ -60,7 +61,7 @@ namespace FitnessTracker.Common.Utils
 
         public static Ciphertext CreateCiphertext(ulong value, Encryptor encryptor)
         {
-            var plaintext = value.ToPlainText();
+            using Plaintext plaintext = value.ToPlainText();
             var ciphertext = new Ciphertext();
             encryptor.Encrypt(plaintext, ciphertext);
             return ciphertext;
@@ -138,7 +139,9 @@ namespace FitnessTracker.Common.Utils
         }
         */
 
-        public static SEALContext GetContext(ulong polyModulusDegree = DEFAULTPOLYMODULUSDEGREE, SchemeType scheme = SchemeType.BFV)
+
+
+        public static SEALContext GetContext(ulong polyModulusDegree, SchemeType scheme)
         {
             /*
             The first parameter we set is the degree of the `polynomial modulus'. This
@@ -153,6 +156,40 @@ namespace FitnessTracker.Common.Utils
             In this example we use a relatively small polynomial modulus. Anything
             smaller than this will enable only very restricted encrypted computations.
             */
+
+            EncryptionParameters encParams = default(EncryptionParameters);
+
+            switch(scheme)
+            {
+                case SchemeType.BFV:
+                case SchemeType.BGV:
+                    encParams = GetWholeNumberEncryptionParamters(polyModulusDegree, scheme);
+                    break;
+                case SchemeType.CKKS:
+                    encParams = GetRealNumberEncryptionParamters();
+                    break;
+                default:
+                    throw new ArgumentException($"Invalid Scheme {scheme}");
+
+            }
+
+            return new SEALContext(encParams);
+        }
+
+        private static EncryptionParameters GetRealNumberEncryptionParamters()
+        {
+            EncryptionParameters encryptionParameters = new EncryptionParameters(SchemeType.CKKS);
+
+            ulong polyModulusDegree = 8192;
+            encryptionParameters.PolyModulusDegree = polyModulusDegree;
+            encryptionParameters.CoeffModulus = CoeffModulus.Create(
+                polyModulusDegree, new int[] { 60, 40, 40, 60 });
+
+            return encryptionParameters;
+        }
+
+        private static EncryptionParameters GetWholeNumberEncryptionParamters(ulong polyModulusDegree, SchemeType scheme)
+        {
             var encryptionParameters = new EncryptionParameters(scheme)
             {
                 PolyModulusDegree = polyModulusDegree,
@@ -207,9 +244,8 @@ namespace FitnessTracker.Common.Utils
                 PlainModulus = PlainModulus.Batching(polyModulusDegree, 20)
             };
 
-            Debug.WriteLine("[COMMON]: Successfully created context");
+            return encryptionParameters;
 
-            return new SEALContext(encryptionParameters);
         }
     }
 }

@@ -6,6 +6,7 @@ namespace FitnessTrackerAPI.Services
     {
         void AddRunItem(RunItem request);
         SummaryItem GetMetrics();
+
         void SetPublicKey(string publicKeyEncoded);
     }
 }

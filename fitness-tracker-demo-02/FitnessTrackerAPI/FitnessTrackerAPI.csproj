@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net7.0</TargetFramework>
     <AspNetCoreHostingModel>InProcess</AspNetCoreHostingModel>
     <Platforms>AnyCPU;x64</Platforms>
     <UserSecretsId>0a0c8bf2-58d7-449d-a70f-3e65a575f9cd</UserSecretsId>

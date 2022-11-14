@@ -5,34 +5,38 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.Research.SEAL;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace FitnessTrackerClient.Services
 {
-    public class FitnessCryptoManager : IDisposable, IFitnessCryptoManager
+    public abstract class FitnessCryptoManager : IFitnessCryptoManager
     {
         private bool _disposed;
         private Encryptor _encryptor;
         private Decryptor _decryptor;
-        private SEALContext _context;
+        protected SEALContext _context;
         private KeyGenerator _keyGenerator;
-        private IFitnessTrackerApiClient _apiClient;
+        protected IFitnessTrackerApiClient _apiClient;
         private PublicKey _publicKey;
         private IOptions<FitnessCryptoConfig> _config;
-        private readonly ILogger<FitnessCryptoManager> _logger;
+        private readonly ILogger _logger;
 
-        public FitnessCryptoManager(IOptions<FitnessCryptoConfig> config, IFitnessTrackerApiClient apiClient, ILogger<FitnessCryptoManager> logger)
+        public FitnessCryptoManager(IOptions<FitnessCryptoConfig> config, IFitnessTrackerApiClient apiClient, ILogger logger)
         {
             _config = config;
             _apiClient = apiClient;
             _logger = logger;
         }
 
-        public async Task InitializeAsync()
-        {
-            _logger.LogInformation("Initializing encryption");
 
-            _context = SEALUtils.GetContext(_config.Value.PolyModulusDegree);
+        public virtual async Task InitializeAsync()
+        {
+            LogInformation("Initializing encryption");
+
+            _context = SEALUtils.GetContext(_config.Value.PolyModulusDegree, this.SchemeType);
 
             _keyGenerator = new KeyGenerator(_context);
 
@@ -40,79 +44,66 @@ namespace FitnessTrackerClient.Services
 
             _publicKey = publicKey;
 
-            _logger.LogInformation("Generating public key");
+            LogInformation("Generating public key");
             PublicKeyModel keyModel = new PublicKeyModel();
             keyModel.PublicKey = SEALUtils.PublicKeyToBase64String(_publicKey);
+            keyModel.SchemeType = this.SchemeType;
 
-            _logger.LogInformation("Sending public key to API");
-            await _apiClient.SendPublicKey(keyModel);
+            LogInformation("Sending public key to API");
+            await _apiClient.SendPublicKeyAsync(keyModel);
 
             _encryptor = new Encryptor(_context, _publicKey);
 
             _decryptor = new Decryptor(_context, _keyGenerator.SecretKey);
         }
 
-        public async Task SendNewRunAsync(RunEntry newRun)
+        public abstract SchemeType SchemeType
+        { get; }
+
+        protected void LogInformation(string message)
         {
-
-            var metricsRequest = new RunItem
-            {
-                Distance = EncryptBase64(newRun.Distance),
-                Time = EncryptBase64(newRun.Time)
-            };
-
-            string logInfo = LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
-
-            _logger.LogInformation(logInfo);
-
-            // Send new run to api
-            await _apiClient.AddNewRunningDistance(metricsRequest);
+            _logger.LogInformation(message);
         }
 
-        private string EncryptBase64(int value)
+        protected string EncryptBase64(int value)
         {
             var plaintext = new Plaintext(value.ToString("X"));
+
+            return EncryptBase64(plaintext);
+        }
+
+
+        protected string EncryptBase64(Plaintext value)
+        {            
             var ciphertext = new Ciphertext();
-            _encryptor.Encrypt(plaintext, ciphertext);
+            _encryptor.Encrypt(value, ciphertext);
 
             // Convert value to base64 string
             return SEALUtils.CiphertextToBase64String(ciphertext);
         }
 
-        public async Task<DecryptedMetricsResponse> GetMetricsAsync()
+        protected string DecryptBase64(string encryptedText)
         {
-            // Get encrypted metrics
-            var metrics = await _apiClient.GetMetrics();
-
-            DecryptedMetricsResponse response = new DecryptedMetricsResponse();
-
-            string logInfo = LogUtils.SummaryStatisticInfo("CLIENT", "GetMetrics", metrics);
-            _logger.LogInformation(logInfo);
-
-            // Decrypt the data
-            response.TotalRuns = DecryptBase64(metrics.TotalRuns);
-            response.TotalDistance = DecryptBase64(metrics.TotalDistance);
-            response.TotalHours = DecryptBase64(metrics.TotalHours);
-            return response;
+            var decryptedText = DecryptBase64ToPlaintext(encryptedText);
+            return decryptedText.ToString();
         }
 
-
-        private string DecryptBase64(string encryptedText)
+        protected Plaintext DecryptBase64ToPlaintext(string encryptedText)
         {
             var cypherText = SEALUtils.BuildCiphertextFromBase64String(encryptedText, _context);
             var decryptedText = new Plaintext();
             _decryptor.Decrypt(cypherText, decryptedText);
-            return decryptedText.ToString();
+            return decryptedText;
         }
-        
-        internal PublicKey PublicKey
+
+
+        public PublicKey PublicKey
         {
             get
             {
                 return _publicKey;
             }
         }
-
 
         public void Dispose() => Dispose(true);
 
@@ -134,6 +125,5 @@ namespace FitnessTrackerClient.Services
 
             _disposed = true;
         }
-
     }
 }

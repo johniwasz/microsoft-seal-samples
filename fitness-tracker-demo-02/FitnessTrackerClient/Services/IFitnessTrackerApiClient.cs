@@ -5,8 +5,14 @@ namespace FitnessTrackerClient.Services
 {
     public interface IFitnessTrackerApiClient
     {
-        Task AddNewRunningDistance(RunItem metricsRequest);
-        Task<SummaryItem> GetMetrics();
-        Task SendPublicKey(PublicKeyModel publicKey);
+        Task AddNewRunningDistanceBGVAsync(RunItem metricsRequest);
+
+        Task AddNewRunningDistanceCKKSAsync(RunItem metricsRequest);
+
+        Task<SummaryItem> GetMetricsBGVAsync();
+
+        Task<SummaryItem> GetMetricsCKKSAsync();
+
+        Task SendPublicKeyAsync(PublicKeyModel publicKey);
     }
 }

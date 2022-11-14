@@ -16,7 +16,8 @@ using IHost host = Host.CreateDefaultBuilder(args)
             {
                 options.PolyModulusDegree = SEALUtils.DEFAULTPOLYMODULUSDEGREE;
             })
-            .AddSingleton<IFitnessCryptoManager, FitnessCryptoManager>()
+            .AddSingleton<IFitnessCryptoManagerBGV, FitnessCryptoManagerBGV>()
+            .AddSingleton<IFitnessCryptoManagerCKKS, FitnessCryptoManagerCKKS>()
             .AddHostedService<ClientWorker>()
             .AddScoped<IFitnessTrackerApiClient, FitnessTrackerApiClient>()
             .AddHttpClient<IFitnessTrackerApiClient, FitnessTrackerApiClient>()

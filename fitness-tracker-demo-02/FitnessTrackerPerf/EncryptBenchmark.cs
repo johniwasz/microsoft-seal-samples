@@ -34,7 +34,7 @@ namespace FitnessTrackerPerf
         [GlobalSetup]
         public void GlobalSetup()
         {
-            _context = SEALUtils.GetContext(PolyModulusDegree);
+            _context = SEALUtils.GetContext(PolyModulusDegree, SchemeType);
             _keyGenerator = new KeyGenerator(_context);
             _keyGenerator.CreatePublicKey(out _publicKey);
             _encryptor = new Encryptor(_context, _publicKey);

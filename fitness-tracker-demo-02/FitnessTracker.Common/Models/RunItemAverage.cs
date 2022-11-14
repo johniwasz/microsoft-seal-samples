@@ -1,17 +1,17 @@
-﻿using FitnessTracker.Common.Utils;
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
+using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace FitnessTracker.Common.Models
 {
-    public class RunItem
+    public class RunItemAverage
     {
         public string Distance { get; set; }
-
         public string Time { get; set; }
 
         public string TimeReciprocal { get; set; }
+
     }
 }

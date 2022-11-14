@@ -10,16 +10,19 @@ namespace FitnessTrackerClient.Services
     internal class ClientWorker : BackgroundService
     {
         private CancellationTokenSource _stoppingCts;
-        private readonly IFitnessCryptoManager _cryptoManager;
+        private readonly IFitnessCryptoManagerBGV _cryptoManagerBGV;
+        private readonly IFitnessCryptoManagerCKKS _cryptoManagerCKKS;
         private readonly ILogger<ClientWorker> _logger;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         public ClientWorker(
-            IFitnessCryptoManager cryptoManager,
+            IFitnessCryptoManagerBGV cryptoManagerBGV,
+            IFitnessCryptoManagerCKKS cryptoManagerCKKS,
             IHostApplicationLifetime hostApplicationLifetime,
             ILogger<ClientWorker> logger)
         {
-            _cryptoManager = cryptoManager;
+            _cryptoManagerBGV = cryptoManagerBGV;
+            _cryptoManagerCKKS = cryptoManagerCKKS;
             _hostApplicationLifetime = hostApplicationLifetime;
             _logger = logger;
 
@@ -33,7 +36,8 @@ namespace FitnessTrackerClient.Services
             try
             {
                 // Configure encryption/decruption
-                await _cryptoManager.InitializeAsync();
+                await _cryptoManagerBGV.InitializeAsync();
+                await _cryptoManagerCKKS.InitializeAsync();
             }
             catch (Exception ex)
             {
@@ -67,15 +71,26 @@ namespace FitnessTrackerClient.Services
                             isExiting = true;
                             break;
                         case 1:
-                            RunEntry newRun = GetNewRun();
+                            RunEntry<int> newRun = GetNewRun();
                             if (newRun != null)
                             {
-                                await _cryptoManager.SendNewRunAsync(newRun);
+                                await _cryptoManagerBGV.SendNewRunAsync(newRun);
                             }
                             break;
                         case 2:
-                            DecryptedMetricsResponse decryptedResponse = await _cryptoManager.GetMetricsAsync();
+                            DecryptedMetricsResponse decryptedResponse = await _cryptoManagerBGV.GetMetricsAsync();
                             PrintMetrics(decryptedResponse);
+                            break;
+                        case 3:
+                            RunEntry<double> newRunCKKS = GetNewRunCKKS();
+                            if (newRunCKKS != null)
+                            {
+                                await _cryptoManagerCKKS.SendNewRunAsync(newRunCKKS);
+                            }
+                            break;
+                        case 4:
+                            DecryptedMetricsAverageResponse decryptedAverageResponse = await _cryptoManagerCKKS.GetMetricsAverageAsync();
+                            PrintMetrics(decryptedAverageResponse);
                             break;
                     }
                 }
@@ -88,12 +103,32 @@ namespace FitnessTrackerClient.Services
             _hostApplicationLifetime.StopApplication();
         }
 
-        private RunEntry GetNewRun()
+        private void PrintMetrics(DecryptedMetricsAverageResponse decryptedAverageResponse)
         {
-            RunEntry runEntry = new RunEntry();
+
+
+            Console.WriteLine(string.Empty);
+            Console.WriteLine("********* Metrics *********");
+            Console.WriteLine($"Total runs: {(int) decryptedAverageResponse.TotalRuns}");
+            Console.WriteLine($"Total distance: {decryptedAverageResponse.TotalDistance}");
+
+            TimeSpan totalTimeSpan = TimeSpan.FromSeconds(decryptedAverageResponse.TotalSeconds);
+
+            double milesPerHour = decryptedAverageResponse.AverageSpeed * 60 * 60;
+
+            Console.WriteLine($"Total time: {totalTimeSpan}");
+
+            Console.WriteLine($"Average pace: {milesPerHour} mph");
+
+            Console.WriteLine(string.Empty);
+        }
+
+        private RunEntry<int> GetNewRun()
+        {
+            RunEntry<int> runEntry = new RunEntry<int>();
 
             // Get distance from user
-            Console.Write("Enter the new running distance (km): ");
+            Console.Write("Enter the new running distance (m): ");
             var newRunningDistance = Convert.ToInt32(Console.ReadLine());
 
             if (newRunningDistance < 0)
@@ -105,7 +140,7 @@ namespace FitnessTrackerClient.Services
             runEntry.Distance = newRunningDistance;
 
             // Get time from user
-            Console.Write("Enter the new running time (hours): ");
+            Console.Write("Enter the new running time (HH:MM:SS.mmm): ");
             var newRunningTime = Convert.ToInt32(Console.ReadLine());
 
             if (newRunningTime < 0)
@@ -115,6 +150,44 @@ namespace FitnessTrackerClient.Services
             }
 
             runEntry.Time = newRunningTime;
+
+
+            return runEntry;
+        }
+
+        private RunEntry<double> GetNewRunCKKS()
+        {
+            RunEntry<double> runEntry = new RunEntry<double>();
+
+            // Get distance from user
+            Console.Write("Enter the new running distance (m): ");
+            var newRunningDistance = Convert.ToDouble(Console.ReadLine());
+
+            if (newRunningDistance < 0)
+            {
+                Console.WriteLine("Running distance must be greater than 0.");
+                return null;
+            }
+
+            runEntry.Distance = newRunningDistance;
+
+            // Get time from user
+            Console.Write("Enter the new running time (hours): ");
+
+            string timeEntry = Console.ReadLine();
+
+            double runningTime;
+
+            if (TimeSpan.TryParse(timeEntry, out TimeSpan runTime))
+            {
+                runningTime = runTime.TotalSeconds;
+                runEntry.Time = runningTime;
+            }
+            else
+            {
+                Console.WriteLine("Could not parse running time.");
+                return null;
+            }
 
             return runEntry;
         }
@@ -133,8 +206,13 @@ namespace FitnessTrackerClient.Services
         {
             Console.WriteLine("********* Menu (enter the option number and press enter) *********");
             Console.WriteLine("0. Exit");
-            Console.WriteLine("1. Add running distance");
-            Console.WriteLine("2. Get metrics");
+            Console.WriteLine("Integers (BGV):");
+            Console.WriteLine("  1. Add run (whole numbers)");
+            Console.WriteLine("  2. Get metrics");
+            Console.WriteLine("Doubles (CKKS):");
+            Console.WriteLine("  3. Add run ");
+            Console.WriteLine("  4. Get metrics");
+
             Console.Write("Option: ");
         }
     }

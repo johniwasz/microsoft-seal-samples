@@ -1,4 +1,5 @@
 ﻿using FitnessTracker.Common.Models;
+using System;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -15,12 +16,12 @@ namespace FitnessTrackerClient.Services
             _client = client;
         }
 
-        public async Task AddNewRunningDistance(RunItem metricsRequest)
+        public async Task AddNewRunningDistanceBGVAsync(RunItem metricsRequest)
         {
 
             var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
 
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metrics"))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metricsbgv"))
             using (var content = new StringContent(metricsRequestAsJsonStr, Encoding.UTF8, "application/json"))
             {
                 request.Content = content;
@@ -29,9 +30,34 @@ namespace FitnessTrackerClient.Services
             }
         }
 
-        public async Task<SummaryItem> GetMetrics()
+        public async Task AddNewRunningDistanceCKKSAsync(RunItem metricsRequest)
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/metrics"))
+
+            var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
+
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metricsckks"))
+            using (var content = new StringContent(metricsRequestAsJsonStr, Encoding.UTF8, "application/json"))
+            {
+                request.Content = content;
+
+                try
+                {
+                    var response = await _client.SendAsync(request);
+                    response.EnsureSuccessStatusCode();
+
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+
+                }
+            }
+        }
+
+
+        public async Task<SummaryItem> GetMetricsBGVAsync()
+        {
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/metricsbgv"))
             {
                 var response = await _client.SendAsync(request);
                 string contentText = await response.Content.ReadAsStringAsync();
@@ -45,7 +71,26 @@ namespace FitnessTrackerClient.Services
             }
         }
 
-        public async Task SendPublicKey(PublicKeyModel publicKey)
+
+        public async Task<SummaryItem> GetMetricsCKKSAsync()
+        {
+
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/metricsckks"))
+            {
+                var response = await _client.SendAsync(request);
+                string contentText = await response.Content.ReadAsStringAsync();
+
+                JsonSerializerOptions serOptions = new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                };
+
+                return JsonSerializer.Deserialize<SummaryItem>(contentText, serOptions);
+            }
+
+        }
+
+        public async Task SendPublicKeyAsync(PublicKeyModel publicKey)
         {
             var publicKeyRequestAsJsonStr = JsonSerializer.Serialize(publicKey);
 
