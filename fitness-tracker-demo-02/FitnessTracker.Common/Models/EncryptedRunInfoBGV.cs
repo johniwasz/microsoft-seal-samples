@@ -5,7 +5,7 @@ using System.Text;
 
 namespace FitnessTracker.Common.Models
 {
-    public class ClientData
+    public class EncryptedRunInfoBGV
     {
         public Ciphertext Hours { get; set; }
 

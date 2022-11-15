@@ -16,13 +16,14 @@ using IHost host = Host.CreateDefaultBuilder(args)
             {
                 options.PolyModulusDegree = SEALUtils.DEFAULTPOLYMODULUSDEGREE;
             })
-            .AddSingleton<IFitnessCryptoManager, FitnessCryptoManager>()
+            .AddSingleton<IFitnessCryptoManagerBGV, FitnessCryptoManagerBGV>()
+            .AddSingleton<IFitnessCryptoManagerCKKS, FitnessCryptoManagerCKKS>()
             .AddHostedService<ClientWorker>()
             .AddScoped<IFitnessTrackerApiClient, FitnessTrackerApiClient>()
             .AddHttpClient<IFitnessTrackerApiClient, FitnessTrackerApiClient>()
             .ConfigureHttpClient(httpClient =>
             {
-                httpClient.BaseAddress = new Uri("http://localhost:58849/api/");
+                httpClient.BaseAddress = new Uri("https://localhost:61373/api/");
                 httpClient.DefaultRequestHeaders.Add(
                     HeaderNames.Accept, "application/json");
             })

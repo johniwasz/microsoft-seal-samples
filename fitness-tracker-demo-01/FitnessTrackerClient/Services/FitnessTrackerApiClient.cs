@@ -4,21 +4,23 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerClient
+namespace FitnessTrackerClient.Services
 {
-    internal static class FitnessTrackerClient
+    public class FitnessTrackerApiClient : IFitnessTrackerApiClient
     {
-        private static HttpClient _client = new HttpClient();
+        private HttpClient _client;
 
-        private static readonly string BaseUri = "http://localhost:58849/api";
+        public FitnessTrackerApiClient(HttpClient client)
+        {
+            _client = client;
+        }
 
-
-        internal static async Task AddNewRunningDistance(RunItem metricsRequest)
+        public async Task AddNewRunningDistance(RunItem metricsRequest)
         {
 
             var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
-      
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUri}/metrics"))
+
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metrics"))
             using (var content = new StringContent(metricsRequestAsJsonStr, Encoding.UTF8, "application/json"))
             {
                 request.Content = content;
@@ -27,9 +29,9 @@ namespace FitnessTrackerClient
             }
         }
 
-        internal static async Task<SummaryItem> GetMetrics()
+        public async Task<SummaryItem> GetMetrics()
         {
-            using (var request = new HttpRequestMessage(HttpMethod.Get, $"{BaseUri}/metrics"))
+            using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/metrics"))
             {
                 var response = await _client.SendAsync(request);
                 string contentText = await response.Content.ReadAsStringAsync();
@@ -43,11 +45,11 @@ namespace FitnessTrackerClient
             }
         }
 
-        internal static async Task SendPublicKey(PublicKeyModel publicKey)
+        public async Task SendPublicKey(PublicKeyModel publicKey)
         {
             var publicKeyRequestAsJsonStr = JsonSerializer.Serialize(publicKey);
 
-            using (var request = new HttpRequestMessage(HttpMethod.Post, $"{BaseUri}/metrics/keys"))
+            using (var request = new HttpRequestMessage(HttpMethod.Post, $"/api/metrics/keys"))
             using (var content = new StringContent(publicKeyRequestAsJsonStr, Encoding.UTF8, "application/json"))
             {
                 request.Content = content;

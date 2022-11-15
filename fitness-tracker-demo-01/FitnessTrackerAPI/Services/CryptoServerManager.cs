@@ -1,6 +1,10 @@
 ﻿using FitnessTracker.Common.Models;
 using FitnessTracker.Common.Utils;
+using FitnessTrackerClient.Models;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.Research.SEAL;
+using Microsoft.VisualStudio.Web.CodeGeneration;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -14,19 +18,23 @@ namespace FitnessTrackerAPI.Services
         private bool _disposed;
         private Evaluator _evaluator;
         private Encryptor _encryptor;
-        private List<ClientData> _metrics = new List<ClientData>();
+        private List<EncryptedRunInfo> _runList = new List<EncryptedRunInfo>();
+        private IOptions<FitnessCryptoConfig> _config;
         private Microsoft.Research.SEAL.PublicKey _publicKey;
+        private ILogger<CryptoServerManager> _logger;
 
-        public CryptoServerManager()
+        public CryptoServerManager(IOptions<FitnessCryptoConfig> config, ILogger<CryptoServerManager> logger)
         {
             // Initialize context
-            _sealContext = SEALUtils.GetContext();
+            _config = config;
+            _sealContext = SEALUtils.GetContext(_config.Value.PolyModulusDegree);
             _evaluator = new Evaluator(_sealContext);
+            _logger = logger;
         }
 
         public void SetPublicKey(string publicKeyEncoded)
         {
-            Debug.WriteLine("[API]: SetPublicKey - set public key from client");
+            _logger.LogDebug("[API]: SetPublicKey - set public key from client");
 
             _publicKey = SEALUtils.BuildPublicKeyFromBase64String(publicKeyEncoded, _sealContext);
             _encryptor = new Encryptor(_sealContext, _publicKey);
@@ -35,11 +43,13 @@ namespace FitnessTrackerAPI.Services
         public void AddRunItem(RunItem request)
         {
             // Add AddRunItem code
-            LogUtils.RunItemInfo("API", "AddRunItem", request);
+            string runInfo = LogUtils.RunItemInfo("API", "AddRunItem", request);
+            _logger.LogInformation(runInfo);
+
             var distance = SEALUtils.BuildCiphertextFromBase64String(request.Distance, _sealContext);
             var time = SEALUtils.BuildCiphertextFromBase64String(request.Time, _sealContext);
 
-            _metrics.Add(new ClientData
+            _runList.Add(new EncryptedRunInfo
             {
                 Distance = distance,
                 Hours = time
@@ -48,9 +58,9 @@ namespace FitnessTrackerAPI.Services
 
         public SummaryItem GetMetrics()
         {
-            var totalDistance = SumEncryptedValues(_metrics.Select(m => m.Distance));
-            var totalHours = SumEncryptedValues(_metrics.Select(m => m.Hours));
-            var totalMetrics = SEALUtils.CreateCiphertextFromInt(_metrics.Count(), _encryptor);
+            var totalDistance = SumEncryptedValues(_runList.Select(m => m.Distance));
+            var totalHours = SumEncryptedValues(_runList.Select(m => m.Hours));
+            var totalMetrics = SEALUtils.CreateCiphertextFromInt(_runList.Count(), _encryptor);
 
             var summaryItem = new SummaryItem
             {
@@ -59,7 +69,8 @@ namespace FitnessTrackerAPI.Services
                 TotalHours = SEALUtils.CiphertextToBase64String(totalHours)
             };
 
-            LogUtils.SummaryStatisticInfo("API", "GetMetrics", summaryItem);
+            string statsLog = LogUtils.SummaryStatisticInfo("API", "GetMetrics", summaryItem);
+            _logger.LogInformation(statsLog);
 
             return summaryItem;
         }
@@ -96,7 +107,7 @@ namespace FitnessTrackerAPI.Services
                 _sealContext.Dispose();
             }
 
-            _metrics = null;
+            _runList = null;
 
             _disposed = true;
         }

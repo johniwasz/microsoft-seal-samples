@@ -4,12 +4,46 @@ using FitnessTrackerClient.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Research.SEAL;
+using System;
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddSingleton<ICryptoServerManager, CryptoServerManager>();
+//builder.Services.AddSingleton<ICryptoServerManager, CryptoServerManager>();
+
+
+builder.Services.AddSingleton(typeof(CryptoServerManagerCKKS));
+builder.Services.AddSingleton(typeof(CryptoServerManagerBGV));
+builder.Services.AddSingleton(typeof(CryptoServerManagerBFV));
+
+
+
+//builder.Services.AddSingleton<ICryptoServerManager>(sp => new CryptoServerManager(SEALUtils.DEFAULTPOLYMODULUSDEGREE, SchemeType.BFV));
+
+
+builder.Services.AddSingleton<Func<SchemeType, ICryptoServerManager>>(serviceProvider => key =>
+{
+   
+    ICryptoServerManager cryptoManager = null;
+
+    switch (key)
+    {
+        case SchemeType.BFV:
+            cryptoManager = serviceProvider.GetRequiredService<CryptoServerManagerBFV>();
+            break;
+        case SchemeType.BGV:
+            cryptoManager = serviceProvider.GetRequiredService<CryptoServerManagerBGV>();
+            break;
+        case SchemeType.CKKS:
+            cryptoManager = serviceProvider.GetRequiredService<CryptoServerManagerCKKS>();
+            break;
+    }
+
+    return cryptoManager;
+});
+
 
 builder.Services.Configure<FitnessCryptoConfig>(options =>
     {
