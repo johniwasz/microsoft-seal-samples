@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace FitnessTrackerClient.Services
 {
-    public class FitnessCryptoManagerBGV : FitnessCryptoManager, IFitnessCryptoManagerBGV
+    public class FitnessCryptoManagerBGV : FitnessCryptoManager
     {
         public FitnessCryptoManagerBGV(IOptions<FitnessCryptoConfig> config, IFitnessTrackerApiClient apiClient, ILogger<FitnessCryptoManagerBGV> logger) :base(config, apiClient, logger)
         {

@@ -11,7 +11,6 @@ namespace FitnessTrackerClient.Models
         public double TotalRuns { get; set; }
         public double TotalDistance { get; set; }
         public double TotalSeconds { get; set; }
-
         public double AverageSpeed { get; set; }
 
     }

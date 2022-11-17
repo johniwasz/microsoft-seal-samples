@@ -10,14 +10,14 @@ namespace FitnessTrackerClient.Services
     internal class ClientWorker : BackgroundService
     {
         private CancellationTokenSource _stoppingCts;
-        private readonly IFitnessCryptoManagerBGV _cryptoManagerBGV;
-        private readonly IFitnessCryptoManagerCKKS _cryptoManagerCKKS;
+        private readonly FitnessCryptoManagerBGV _cryptoManagerBGV;
+        private readonly FitnessCryptoManagerCKKS _cryptoManagerCKKS;
         private readonly ILogger<ClientWorker> _logger;
         private readonly IHostApplicationLifetime _hostApplicationLifetime;
 
         public ClientWorker(
-            IFitnessCryptoManagerBGV cryptoManagerBGV,
-            IFitnessCryptoManagerCKKS cryptoManagerCKKS,
+            FitnessCryptoManagerBGV cryptoManagerBGV,
+            FitnessCryptoManagerCKKS cryptoManagerCKKS,
             IHostApplicationLifetime hostApplicationLifetime,
             ILogger<ClientWorker> logger)
         {
@@ -109,7 +109,7 @@ namespace FitnessTrackerClient.Services
 
             Console.WriteLine(string.Empty);
             Console.WriteLine("********* Metrics *********");
-            Console.WriteLine($"Total runs: {(int) decryptedAverageResponse.TotalRuns}");
+            Console.WriteLine($"Total runs: {(int) Math.Round(decryptedAverageResponse.TotalRuns)}");
             Console.WriteLine($"Total distance: {decryptedAverageResponse.TotalDistance}");
 
             TimeSpan totalTimeSpan = TimeSpan.FromSeconds(decryptedAverageResponse.TotalSeconds);

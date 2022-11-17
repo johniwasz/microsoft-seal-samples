@@ -15,7 +15,7 @@ using static System.Formats.Asn1.AsnWriter;
 
 namespace FitnessTrackerClient.Services
 {
-    public class FitnessCryptoManagerCKKS : FitnessCryptoManager, IFitnessCryptoManagerCKKS
+    public class FitnessCryptoManagerCKKS : FitnessCryptoManager
     {
         private double _scale;
 

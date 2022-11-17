@@ -13,6 +13,8 @@ namespace FitnessTrackerClient.Services
 
         Task<SummaryItem> GetMetricsCKKSAsync();
 
-        Task SendPublicKeyAsync(PublicKeyModel publicKey);
+        Task SendPublicKeyBGVAsync(PublicKeyModel publicKey);
+
+        Task SendPublicKeyCKKSAsync(PublicKeyModel publicKey);
     }
 }
