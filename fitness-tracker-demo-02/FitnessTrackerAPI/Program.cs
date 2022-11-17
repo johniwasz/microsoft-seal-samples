@@ -1,48 +1,17 @@
 ﻿using FitnessTracker.Common.Utils;
+using FitnessTrackerAPI;
 using FitnessTrackerAPI.Services;
 using FitnessTrackerClient.Models;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Research.SEAL;
-using System;
 using System.Text.Json;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-//builder.Services.AddSingleton<ICryptoServerManager, CryptoServerManager>();
-
-
 builder.Services.AddSingleton(typeof(CryptoServerManagerCKKS));
 builder.Services.AddSingleton(typeof(CryptoServerManagerBGV));
-builder.Services.AddSingleton(typeof(CryptoServerManagerBFV));
-
-
-
-//builder.Services.AddSingleton<ICryptoServerManager>(sp => new CryptoServerManager(SEALUtils.DEFAULTPOLYMODULUSDEGREE, SchemeType.BFV));
-
-
-builder.Services.AddSingleton<Func<SchemeType, ICryptoServerManager>>(serviceProvider => key =>
-{
-   
-    ICryptoServerManager cryptoManager = null;
-
-    switch (key)
-    {
-        case SchemeType.BFV:
-            cryptoManager = serviceProvider.GetRequiredService<CryptoServerManagerBFV>();
-            break;
-        case SchemeType.BGV:
-            cryptoManager = serviceProvider.GetRequiredService<CryptoServerManagerBGV>();
-            break;
-        case SchemeType.CKKS:
-            cryptoManager = serviceProvider.GetRequiredService<CryptoServerManagerCKKS>();
-            break;
-    }
-
-    return cryptoManager;
-});
 
 
 builder.Services.Configure<FitnessCryptoConfig>(options =>
@@ -74,10 +43,17 @@ app.UseStaticFiles();
 app.UseCors();
 app.UseHttpsRedirection();
 
-app.MapControllers();
+app.MapGet("/", () => "Welcome to the Fitness Tracked Sample");
+
+app.MapPost("/api/bgv/keys", CryptoServices.SavePublicKeyBGV);
+app.MapPost("/api/bgv/metrics", CryptoServices.SaveRunBGV);
+app.MapGet("/api/bgv/metrics", CryptoServices.GetMetricsBGV);
+
+app.MapPost("/api/ckks/keys", CryptoServices.SavePublicKeyCKKS);
+app.MapPost("/api/ckks/metrics", CryptoServices.SaveRunCKKS);
+app.MapGet("/api/ckks/metrics", CryptoServices.GetMetricsCKKS);
 
 app.Run();
-
 
 namespace FitnessTrackerAPI
 {

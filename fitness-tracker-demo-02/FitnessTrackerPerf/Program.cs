@@ -2,7 +2,6 @@
 using BenchmarkDotNet.Configs;
 using BenchmarkDotNet.Running;
 using FitnessTrackerPerf;
-using Microsoft.Extensions.Logging;
 using BenchmarkDotNet.Jobs;
 using BenchmarkDotNet.Toolchains.InProcess.NoEmit;
 
@@ -12,9 +11,6 @@ var config = ManualConfig.Create(DefaultConfig.Instance)
            .AddJob(Job.MediumRun
                 .WithToolchain(InProcessNoEmitToolchain.Instance)
                 .WithId("InProcess"));
-
-// var summary = BenchmarkRunner.Run<EncryptBenchmark>();
-//Console.WriteLine("Starting");
 
 BenchmarkRunner.Run<EncryptBenchmark>();
 BenchmarkRunner.Run<MultiplyBenchmark>();

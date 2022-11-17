@@ -16,13 +16,15 @@ using IHost host = Host.CreateDefaultBuilder(args)
             {
                 options.PolyModulusDegree = SEALUtils.DEFAULTPOLYMODULUSDEGREE;
             })
-            .AddSingleton<IFitnessCryptoManagerBGV, FitnessCryptoManagerBGV>()
-            .AddSingleton<IFitnessCryptoManagerCKKS, FitnessCryptoManagerCKKS>()
+            .AddSingleton(typeof(FitnessCryptoManagerBGV))
+            .AddSingleton(typeof(FitnessCryptoManagerCKKS))
             .AddHostedService<ClientWorker>()
             .AddScoped<IFitnessTrackerApiClient, FitnessTrackerApiClient>()
             .AddHttpClient<IFitnessTrackerApiClient, FitnessTrackerApiClient>()
             .ConfigureHttpClient(httpClient =>
             {
+                // TODO - Get from Config
+                // Change for your local environment. I got lazy.
                 httpClient.BaseAddress = new Uri("https://localhost:61373/api/");
                 httpClient.DefaultRequestHeaders.Add(
                     HeaderNames.Accept, "application/json");
@@ -38,6 +40,5 @@ static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
     return HttpPolicyExtensions
         .HandleTransientHttpError()
         .OrResult(msg => msg.StatusCode == System.Net.HttpStatusCode.NotFound)
-        .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2,
-                                                                    retryAttempt)));
+        .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
 }

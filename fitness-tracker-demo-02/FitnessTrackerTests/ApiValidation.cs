@@ -47,7 +47,7 @@ namespace FitnessTrackerTests
 
             IFitnessTrackerApiClient apiClient = new FitnessTrackerApiClient(appClient);
 
-            using IFitnessCryptoManagerBGV cruptoManagerSut = new FitnessCryptoManagerBGV(cryptoConfig, apiClient, clientLogger);
+            using FitnessCryptoManagerBGV cruptoManagerSut = new FitnessCryptoManagerBGV(cryptoConfig, apiClient, clientLogger);
 
             await cruptoManagerSut.InitializeAsync();
 
@@ -88,7 +88,7 @@ namespace FitnessTrackerTests
 
             IFitnessTrackerApiClient apiClient = new FitnessTrackerApiClient(appClient);
 
-            using IFitnessCryptoManagerCKKS cruptoManagerSut = new FitnessCryptoManagerCKKS(cryptoConfig, apiClient, clientLogger);
+            using FitnessCryptoManagerCKKS cruptoManagerSut = new FitnessCryptoManagerCKKS(cryptoConfig, apiClient, clientLogger);
 
             await cruptoManagerSut.InitializeAsync();
 
@@ -111,8 +111,9 @@ namespace FitnessTrackerTests
 
             DecryptedMetricsAverageResponse metricsResponse = await cruptoManagerSut.GetMetricsAverageAsync();
 
-           
-            _output.WriteLine($"TotalRuns: {(int)metricsResponse.TotalRuns}");
+            int totalRuns = (int)Math.Round(metricsResponse.TotalRuns);
+
+            _output.WriteLine($"TotalRuns: {totalRuns}");
 
             _output.WriteLine($"TotalDistance: {(int)metricsResponse.TotalDistance}");
 
@@ -120,7 +121,7 @@ namespace FitnessTrackerTests
 
             _output.WriteLine($"AverageSpeed: {(int)metricsResponse.AverageSpeed}");
 
-            Assert.Equal(2, (int)metricsResponse.TotalRuns);
+            Assert.Equal(2, totalRuns);
 
             //var metricsResult = await cruptoManagerSut.GetMetricsAsync();
 
