@@ -9,68 +9,67 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerPerf
+namespace FitnessTrackerPerf;
+
+//[Config(typeof(AntiVirusFriendlyConfig))]
+[RPlotExporter]
+public class EncryptBenchmark
 {
-    //[Config(typeof(AntiVirusFriendlyConfig))]
-    [RPlotExporter]
-    public class EncryptBenchmark
+    const ulong unencryptedValue = 100;
+
+    private SEALContext _context;
+    private KeyGenerator _keyGenerator;
+    private PublicKey _publicKey;
+    private Encryptor _encryptor;
+    private Plaintext _valueText;
+    private Decryptor _decryptor;
+
+    private Ciphertext _encryptedValue;
+
+    [Params(SchemeType.BFV, SchemeType.BGV, SchemeType.CKKS)]
+    public SchemeType SchemeType;
+
+    [Params(1024, 4096, 8192, 16384, 32768)]
+    public ulong PolyModulusDegree;
+
+    [GlobalSetup]
+    public void GlobalSetup()
     {
-        const ulong unencryptedValue = 100;
+        _context = SEALUtils.GetContext(PolyModulusDegree, SchemeType);
+        _keyGenerator = new KeyGenerator(_context);
+        _keyGenerator.CreatePublicKey(out _publicKey);
+        _encryptor = new Encryptor(_context, _publicKey);
 
-        private SEALContext _context;
-        private KeyGenerator _keyGenerator;
-        private PublicKey _publicKey;
-        private Encryptor _encryptor;
-        private Plaintext _valueText;
-        private Decryptor _decryptor;
+        _decryptor = new Decryptor(_context, _keyGenerator.SecretKey);
+        
+        _valueText = unencryptedValue.ToPlainText();
 
-        private Ciphertext _encryptedValue;
+        _encryptedValue = new Ciphertext();
+        _encryptor.Encrypt(_valueText, _encryptedValue);
+    }
 
-        [Params(SchemeType.BFV, SchemeType.BGV, SchemeType.CKKS)]
-        public SchemeType SchemeType;
+    [Benchmark]
+    public void EncryptCipherText()
+    {            
+        var ciphertext = new Ciphertext();
+        _encryptor.Encrypt(_valueText, ciphertext);
+    }
 
-        [Params(1024, 4096, 8192, 16384, 32768)]
-        public ulong PolyModulusDegree;
+    [Benchmark]
+    public void DecryptCipherText()
+    {
+        var decryptedText = new Plaintext();
+        _decryptor.Decrypt(_encryptedValue, decryptedText);
+        string val = decryptedText.ToString();
+    }
 
-        [GlobalSetup]
-        public void GlobalSetup()
-        {
-            _context = SEALUtils.GetContext(PolyModulusDegree, SchemeType);
-            _keyGenerator = new KeyGenerator(_context);
-            _keyGenerator.CreatePublicKey(out _publicKey);
-            _encryptor = new Encryptor(_context, _publicKey);
-
-            _decryptor = new Decryptor(_context, _keyGenerator.SecretKey);
-            
-            _valueText = unencryptedValue.ToPlainText();
-
-            _encryptedValue = new Ciphertext();
-            _encryptor.Encrypt(_valueText, _encryptedValue);
-        }
-
-        [Benchmark]
-        public void EncryptCipherText()
-        {            
-            var ciphertext = new Ciphertext();
-            _encryptor.Encrypt(_valueText, ciphertext);
-        }
-
-        [Benchmark]
-        public void DecryptCipherText()
-        {
-            var decryptedText = new Plaintext();
-            _decryptor.Decrypt(_encryptedValue, decryptedText);
-            string val = decryptedText.ToString();
-        }
-
-        [GlobalCleanup]
-        public void GlobalCleanup()
-        {
-            _decryptor.Dispose();
-            _encryptor.Dispose();
-            _publicKey.Dispose();
-            _keyGenerator.Dispose();
-            _context.Dispose();
-        }
+    [GlobalCleanup]
+    public void GlobalCleanup()
+    {
+        _decryptor.Dispose();
+        _encryptor.Dispose();
+        _publicKey.Dispose();
+        _keyGenerator.Dispose();
+        _context.Dispose();
     }
 }

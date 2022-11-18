@@ -6,13 +6,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerTests
+namespace FitnessTrackerTests;
+
+public class Startup
 {
-    public class Startup
+    public void ConfigureServices(IServiceCollection services)
     {
-        public void ConfigureServices(IServiceCollection services)
-        {
-           // services.AddTransient<IDependency, DependencyClass>();
-        }
+       // services.AddTransient<IDependency, DependencyClass>();
     }
 }

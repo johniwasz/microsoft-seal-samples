@@ -18,13 +18,9 @@ namespace FitnessTrackerClient.Services
         public async Task SendNewRunAsync(RunEntry<int> newRun)
         {
 
-            var metricsRequest = new RunItem
-            {
-                Distance = EncryptBase64(newRun.Distance),
-                Time = EncryptBase64(newRun.Time)
-            };
+            var metricsRequest = new RunItemBGV(EncryptBase64(newRun.Distance), EncryptBase64(newRun.Time), null);
 
-            string logInfo = LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
+            string logInfo = LogUtils.RunItemInfoBGV("CLIENT", "SendNewRun", metricsRequest);
 
             LogInformation(logInfo);
 
@@ -37,16 +33,14 @@ namespace FitnessTrackerClient.Services
             // Get encrypted metrics
             var metrics = await _apiClient.GetMetricsBGVAsync();
 
-            DecryptedMetricsResponse response = new DecryptedMetricsResponse();
-
-            string logInfo = LogUtils.SummaryStatisticInfo("CLIENT", "GetMetrics", metrics);
+            string logInfo = LogUtils.SummaryStatisticInfoBGV("CLIENT", "GetMetrics", metrics);
             LogInformation(logInfo);
 
-            // Decrypt the data
-            response.TotalRuns = DecryptBase64(metrics.TotalRuns);
-            response.TotalDistance = DecryptBase64(metrics.TotalDistance);
-            response.TotalHours = DecryptBase64(metrics.TotalTime);
-            return response;
+            // Decrypt the data           
+            return new DecryptedMetricsResponse(
+                DecryptBase64(metrics.TotalRuns),
+                DecryptBase64(metrics.TotalDistance),
+                DecryptBase64(metrics.TotalTime));
         }
         
         public override SchemeType SchemeType => SchemeType.BGV;

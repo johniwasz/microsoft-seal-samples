@@ -48,18 +48,22 @@ namespace FitnessTrackerClient.Services
             _publicKey = publicKey;
 
             LogInformation("Generating public key");
-            PublicKeyModel keyModel = new PublicKeyModel();
-            keyModel.PublicKey = SEALUtils.PublicKeyToBase64String(_publicKey);
-
+           
 
             LogInformation("Sending public key to API");
             switch (this.SchemeType)
             {
                 case SchemeType.BGV:
-                    await _apiClient.SendPublicKeyBGVAsync(keyModel);
+                    PublicKeyModelBGV keyModelBGV = new(SEALUtils.KeyToBase64String(_publicKey));
+                    await _apiClient.SendPublicKeyBGVAsync(keyModelBGV);
                     break;
                 case SchemeType.CKKS:
-                    await _apiClient.SendPublicKeyCKKSAsync(keyModel);
+                    
+                    _keyGenerator.CreateRelinKeys(out RelinKeys relinKeys);
+                    PublicKeyModelCKKS keyModelCKKS = new(
+                        SEALUtils.KeyToBase64String(_publicKey), 
+                        SEALUtils.KeyToBase64String(relinKeys));
+                    await _apiClient.SendPublicKeyCKKSAsync(keyModelCKKS);
                     break;
             }
             

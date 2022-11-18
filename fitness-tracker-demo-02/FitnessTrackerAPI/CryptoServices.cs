@@ -6,50 +6,50 @@ using System;
 using Microsoft.Research.SEAL;
 using System.Threading.Tasks;
 
-namespace FitnessTrackerAPI
+namespace FitnessTrackerAPI;
+
+public static class CryptoServices
 {
-    public static class CryptoServices
+
+    internal static void SavePublicKeyBGV(
+        CryptoServerManagerBGV cryptoManager,
+        [FromBody] PublicKeyModelBGV publicKeyEncoded)
     {
+        cryptoManager.SetPublicKey(publicKeyEncoded.PublicKey);
+    }
 
-        internal static void SavePublicKeyBGV(
-            CryptoServerManagerBGV cryptoManager,
-            [FromBody] PublicKeyModel publicKeyEncoded)
-        {
-            cryptoManager.SetPublicKey(publicKeyEncoded.PublicKey);
-        }
+    internal static void SaveRunBGV(
+        CryptoServerManagerBGV cryptoManager, 
+        [FromBody] RunItemBGV request)
+    {
+        cryptoManager.AddRunItemBGV(request);
+    }
 
-        internal static void SaveRunBGV(
-            CryptoServerManagerBGV cryptoManager, 
-            [FromBody] RunItem request)
-        {
-            cryptoManager.AddRunItem(request);
-        }
+    internal static SummaryItemBGV GetMetricsBGV(CryptoServerManagerBGV cryptoManager)
+    {
+        var summaryItem = cryptoManager.GetMetrics();
+        return summaryItem;
+    }
 
-        internal static SummaryItem GetMetricsBGV(CryptoServerManagerBGV cryptoManager)
-        {
-            var summaryItem = cryptoManager.GetMetrics();
-            return summaryItem;
-        }
-
-        internal static void SavePublicKeyCKKS(
-            CryptoServerManagerCKKS cryptoManager,
-            [FromBody] PublicKeyModel publicKeyEncoded)
-        {
-            cryptoManager.SetPublicKey(publicKeyEncoded.PublicKey);
-        }
+    internal static void SavePublicKeyCKKS(
+        CryptoServerManagerCKKS cryptoManager,
+        [FromBody] PublicKeyModelCKKS publicKeyEncoded)
+    {
+        cryptoManager.SetPublicKey(publicKeyEncoded.PublicKey);
+        cryptoManager.SetRelinKeys(publicKeyEncoded.RelinearizationKeys);
+    }
 
 
-        internal static void SaveRunCKKS(
-            CryptoServerManagerCKKS cryptoManager, 
-            [FromBody] RunItem request)
-        {
-            cryptoManager.AddRunItem(request);
-        }
+    internal static void SaveRunCKKS(
+        CryptoServerManagerCKKS cryptoManager, 
+        [FromBody] RunItemCKKS request)
+    {
+        cryptoManager.AddRunItemCKKS(request);
+    }
 
-        internal static SummaryItem GetMetricsCKKS(
-            CryptoServerManagerCKKS cryptoManager)
-        {
-            return cryptoManager.GetMetrics();
-        }
+    internal static SummaryItemCKKS GetMetricsCKKS(
+        CryptoServerManagerCKKS cryptoManager)
+    {
+        return cryptoManager.GetMetrics();
     }
 }
