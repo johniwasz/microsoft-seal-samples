@@ -109,6 +109,9 @@ namespace FitnessTrackerClient.Services
 
             Console.WriteLine(string.Empty);
             Console.WriteLine("********* Metrics *********");
+
+            int totalRuns = (int)Math.Round(decryptedAverageResponse.TotalRuns);
+
             Console.WriteLine($"Total runs: {(int) Math.Round(decryptedAverageResponse.TotalRuns)}");
             Console.WriteLine($"Total distance: {decryptedAverageResponse.TotalDistance}");
 
@@ -125,7 +128,8 @@ namespace FitnessTrackerClient.Services
 
         private RunEntry<int> GetNewRun()
         {
-            RunEntry<int> runEntry = new RunEntry<int>();
+            int distance;
+            int time;
 
             // Get distance from user
             Console.Write("Enter the new running distance (m): ");
@@ -137,7 +141,7 @@ namespace FitnessTrackerClient.Services
                 return null;
             }
 
-            runEntry.Distance = newRunningDistance;
+            distance = newRunningDistance;
 
             // Get time from user
             Console.Write("Enter the new running time (hours): ");
@@ -149,15 +153,18 @@ namespace FitnessTrackerClient.Services
                 return null;
             }
 
-            runEntry.Time = newRunningTime;
+            time = newRunningTime;
 
 
-            return runEntry;
+            return new RunEntry<int>(distance, time);
         }
 
         private RunEntry<double> GetNewRunCKKS()
         {
-            RunEntry<double> runEntry = new RunEntry<double>();
+           
+
+            double time;
+            double distance;
 
             // Get distance from user
             Console.Write("Enter the new running distance (m): ");
@@ -169,7 +176,7 @@ namespace FitnessTrackerClient.Services
                 return null;
             }
 
-            runEntry.Distance = newRunningDistance;
+            distance = newRunningDistance;
 
             // Get time from user
             Console.Write("Enter the new running time (HH:MM:SS.mmm): ");
@@ -181,7 +188,7 @@ namespace FitnessTrackerClient.Services
             if (TimeSpan.TryParse(timeEntry, out TimeSpan runTime))
             {
                 runningTime = runTime.TotalSeconds;
-                runEntry.Time = runningTime;
+                time = runningTime;
             }
             else
             {
@@ -189,7 +196,7 @@ namespace FitnessTrackerClient.Services
                 return null;
             }
 
-            return runEntry;
+            return new RunEntry<double>(distance, time);
         }
 
         private void PrintMetrics(DecryptedMetricsResponse metricsResponse)

@@ -16,7 +16,7 @@ namespace FitnessTrackerClient.Services
             _client = client;
         }
 
-        public async Task AddNewRunningDistanceBGVAsync(RunItem metricsRequest)
+        public async Task AddNewRunningDistanceBGVAsync(RunItemBGV metricsRequest)
         {
 
             var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
@@ -30,7 +30,7 @@ namespace FitnessTrackerClient.Services
             }
         }
 
-        public async Task AddNewRunningDistanceCKKSAsync(RunItem metricsRequest)
+        public async Task AddNewRunningDistanceCKKSAsync(RunItemCKKS metricsRequest)
         {
 
             var metricsRequestAsJsonStr = JsonSerializer.Serialize(metricsRequest);
@@ -55,7 +55,7 @@ namespace FitnessTrackerClient.Services
         }
 
 
-        public async Task<SummaryItem> GetMetricsBGVAsync()
+        public async Task<SummaryItemBGV> GetMetricsBGVAsync()
         {
             using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/bgv/metrics"))
             {
@@ -67,12 +67,12 @@ namespace FitnessTrackerClient.Services
                     PropertyNameCaseInsensitive = true
                 };
 
-                return JsonSerializer.Deserialize<SummaryItem>(contentText, serOptions);
+                return JsonSerializer.Deserialize<SummaryItemBGV>(contentText, serOptions);
             }
         }
 
 
-        public async Task<SummaryItem> GetMetricsCKKSAsync()
+        public async Task<SummaryItemCKKS> GetMetricsCKKSAsync()
         {
 
             using (var request = new HttpRequestMessage(HttpMethod.Get, $"/api/ckks/metrics"))
@@ -85,12 +85,12 @@ namespace FitnessTrackerClient.Services
                     PropertyNameCaseInsensitive = true
                 };
 
-                return JsonSerializer.Deserialize<SummaryItem>(contentText, serOptions);
+                return JsonSerializer.Deserialize<SummaryItemCKKS>(contentText, serOptions);
             }
 
         }
 
-        public async Task SendPublicKeyBGVAsync(PublicKeyModel publicKey)
+        public async Task SendPublicKeyBGVAsync(PublicKeyModelBGV publicKey)
         {
             var publicKeyRequestAsJsonStr = JsonSerializer.Serialize(publicKey);
 
@@ -103,7 +103,7 @@ namespace FitnessTrackerClient.Services
             }
         }
 
-        public async Task SendPublicKeyCKKSAsync(PublicKeyModel publicKey)
+        public async Task SendPublicKeyCKKSAsync(PublicKeyModelCKKS publicKey)
         {
             var publicKeyRequestAsJsonStr = JsonSerializer.Serialize(publicKey);
 

@@ -1,12 +1,8 @@
 ﻿using FitnessTracker.Common.Models;
 
-namespace FitnessTrackerAPI.Services
-{
-    public interface ICryptoServerManager
-    {
-        void AddRunItem(RunItem request);
-        SummaryItem GetMetrics();
+namespace FitnessTrackerAPI.Services;
 
-        void SetPublicKey(string publicKeyEncoded);
-    }
+public interface ICryptoServerManager
+{ 
+    void SetPublicKey(string publicKeyEncoded);
 }

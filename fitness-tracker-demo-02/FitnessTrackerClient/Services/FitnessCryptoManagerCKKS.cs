@@ -45,51 +45,39 @@ namespace FitnessTrackerClient.Services
             // Get encrypted metrics
             var metrics = await _apiClient.GetMetricsCKKSAsync();
 
-            DecryptedMetricsAverageResponse response = new DecryptedMetricsAverageResponse();
-
-            string logInfo = LogUtils.SummaryStatisticInfo("CLIENT", "GetMetrics", metrics);
+            string logInfo = LogUtils.SummaryStatisticInfoCKKS("CLIENT", "GetMetrics", metrics);
             LogInformation(logInfo);
 
             Plaintext totalRunsText = DecryptBase64ToPlaintext(metrics.TotalRuns);
 
-            List<double> runList = new List<double>();
+            List<double> runList = new();
             _encoder.Decode(totalRunsText, runList);
 
             // Decrypt the data
-            response.TotalRuns = runList[0];
-
-
-            List<double> distanceList = new List<double>();
+            List<double> distanceList = new();
             Plaintext totalDistance = DecryptBase64ToPlaintext(metrics.TotalDistance);
             _encoder.Decode(totalDistance, distanceList);
 
-            response.TotalDistance = distanceList[0];
-
-            List<double> timeList = new List<double>();
+            List<double> timeList = new();
             Plaintext totalTime = DecryptBase64ToPlaintext(metrics.TotalTime);
             _encoder.Decode(totalTime, timeList);
-            response.TotalSeconds = timeList[0];
 
-
-            List<double> averageSpeedList = new List<double>();
+            List<double> averageSpeedList = new();
             Plaintext averageSpeed = DecryptBase64ToPlaintext(metrics.AverageSpeed);
             _encoder.Decode(averageSpeed, averageSpeedList);
-            response.AverageSpeed = averageSpeedList[0];
 
-            return response;
+            return new DecryptedMetricsAverageResponse(runList[0], distanceList[0], timeList[0], averageSpeedList[0]);
         }
                 
 
         public async Task SendNewRunAsync(RunEntry<double> runItem)
         {
-            var metricsRequest = new RunItem
-            {
-                Distance = EncryptBase64(runItem.Distance),
-                Time = EncryptBase64(runItem.Time),
-                TimeReciprocal = EncryptBase64(1/runItem.Time)
-            };
+            RunItemCKKS metricsRequest = new(
+                EncryptBase64(runItem.Distance), 
+                EncryptBase64(runItem.Time), 
+                EncryptBase64(1 / runItem.Time));
 
-            string logInfo = LogUtils.RunItemInfo("CLIENT", "SendNewRun", metricsRequest);
+            string logInfo = LogUtils.RunItemInfoCKKS("CLIENT", "SendNewRun", metricsRequest);
 
             LogInformation(logInfo);
 
